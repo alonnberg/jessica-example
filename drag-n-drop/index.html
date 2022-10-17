@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>📌 Drag and Drop</title>
+
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+
+
+<style>
+:root {
+    --color-mat:       #c9e265;
+    --color-jakt:      #ea94a5;
+    --color-kognitivt: #f9a72b;
+    --color-revir:     #77faff;
+    --color-socialt:   #ffde59;
+    --color-rorelse:   #e898ff;
+    --color-vila:      #8eadff;
+    --color-samarbete: #7eb696;
+    --color-miljo:     #ff7773;
+    --color-doft:     #656bff;
+}
+
+    svg.tool {
+    }
+
+svg.type-mat { fill: var(--color-mat) }
+svg.type-jakt { fill: var(--color-jakt) }
+svg.type-kognitivt { fill: var(--color-kognitivt) }
+svg.type-revir  { fill: var(--color-revir) }
+svg.type-socialt { fill: var(--color-socialt) }
+svg.type-rorelse { fill: var(--color-rorelse) }
+svg.type-vila  { fill: var(--color-vila) }
+svg.type-samarbete { fill: var(--color-samarbete) }
+svg.type-miljo  { fill: var(--color-miljo) }
+svg.type-doft  { fill: var(--color-doft) }
+
+.type-mat { color: var(--color-mat) }
+.type-jakt { color: var(--color-jakt) }
+.type-kognitivt { color: var(--color-kognitivt) }
+.type-revir  { color: var(--color-revir) }
+.type-socialt { color: var(--color-socialt) }
+.type-rorelse { color: var(--color-rorelse) }
+.type-vila  { color: var(--color-vila) }
+.type-samarbete { color: var(--color-samarbete) }
+.type-miljo  { color: var(--color-miljo) }
+.type-doft  { color: var(--color-doft) }
+
+@font-face {
+  font-family: "myfont";
+  src: url('Sailors4301212896525709852.568416760d89c.53989fccc39920037386d82141307268.woff2') format('woff2');
+}
+
+
+</style>
+
+<svg preserveAspectRatio="none" class="tool" style="display:none">
+    <defs>
+        <symbol id="bkg-circle" viewbox="0 0 500 500">
+            <path class="SQ2ADw _682gpw" d="M250,0C111.92881254230167,0 0,111.92881254230164 0,250C0,388.07118745769833 111.92881254230161,500 250,500C388.0711874576983,500 500,388.07118745769833 500,250C500,111.92881254230167 388.07118745769833,0 250,0" fill="" style="touch-action:pan-x pan-y pinch-zoom"></path>
+        </symbol>
+    </defs>
+  <!-- to make the circle-arrow-left.svg file
+       also usable as image: -->
+    <use href="#bkg-circle"/>
+</svg>
+
+
+        <main class="board">
+        </main>
+
+        <div class="toolset">
+            <toolbox ondragover="allowDrop(event)"  ondrop="removeTool(event)">
+            </toolbox>
+            <toolsum><table></table></toolsum>
+        </div>
+
+
+
+        <templates>
+            <template name="weekday">
+                <div class="day weekday-[[OFFSET]]" ondrop="dropTool(event)" ondragover="allowDrop(event)">
+                    <h2>[[DAY]]</h2>
+                    <div class="tools"></div>
+                </div>    
+            </template>
+
+            <template name="tool">
+                <article class="card tool" draggable="true" ondragstart="drag(event)" data-name="[[LCNAME]]" data-type="[[TYPE]]">
+                    <svg class="type-[[TYPE]] tool"><use href="#bkg-circle" /></svg>
+                    <div class="tool-images"><div>[[IMAGES]]</div></div>
+                    <div class="text">[[NAME]]</div>
+                    <div class="counter"></div>
+                </article>
+            </template>
+
+        </templates>
+
+        <script src="drag-n-drop.js"></script>
+        <script>
+            function setTemplateHash(template, key, val) {
+                // TODO
+                return template.replace(new RegExp('\\[\\['+key+'\\]\\]', "g"), val);
+            }
+
+            function setTemplateVal(template, key, val) {
+                return template.replace(new RegExp('\\[\\['+key+'\\]\\]', "g"), val);
+            }
+
+            function addHTML(sel, html) {
+                var el = document.createElement('div');
+                el.innerHTML = html;
+                var childEl  = el.children[0];
+                document.querySelector(sel).appendChild(childEl);
+                return childEl;
+            }
+
+            const weekDays = ['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön'];
+            weekDays.forEach( (day, i) => {
+                if(i > -1 ) {
+                var t = document.querySelector('templates template[name=weekday]').innerHTML.trim();
+                t=setTemplateVal(t, "OFFSET", i+1);
+                t=setTemplateVal(t, "DAY", day);
+
+                addHTML('.board', t);
+                }   
+            });
+
+            var types = ['mat','jakt','kognitivt','revir','socialt','rörelse','vila','samarbete','miljö','doft'];
+            var width = 120;
+            toolSet.forEach( (tool, i) => {
+                if(1 || i > 0 ) {
+                var t = document.querySelector('templates template[name=tool]').innerHTML.trim();
+                t=setTemplateVal(t, "TYPE", tool.type);
+                t=setTemplateVal(t, "NAME", tool.name);
+                t=setTemplateVal(t, "LCNAME", tool.name.toLowerCase().replace(/\s/g, ''));
+
+                var newPosImages = tool.imgs.reduce(function(a, img) {
+                    const keys = ['width', 'height', 'transX', 'transY', 'rotate', 'recenter'];
+                    var offset = 0;
+                    img = img.style.match(/([0-9\.\-]+)/g).reduce(function(h, val) {
+                        h[keys[offset++]] = parseFloat(val);
+                        return h
+                    }, img);
+                    img.diffY = (img.src.match(/tray/) ? 30 : 0);
+                    img.regHeight = width+img.diffY;
+
+                    img.newTrans = "translate("+
+                      ((width -img.width)/2 + (img.recenter||0))+"px, "+
+                      (img.regHeight-img.height)/2+"px) ";
+
+                    img.transCenterPoint = {
+                        'x': img.transX + img.width/2, 
+                        'y': img.transY - img.diffY/2 + img.height/2, 
+                    };
+
+                }, []);
+
+                centerBoth = tool.imgs.length == 2 ? {
+                    transCenterPoint: {
+                        x: tool.imgs.reduce(function(val, img) { return val+img.transCenterPoint.x }, 0)/2,
+                        y: tool.imgs.reduce(function(val, img) { return val+img.transCenterPoint.y }, 0)/2,
+                    }
+                } : undefined;
+    
+                newPosImages = tool.imgs.reduce(function(a, img) {
+                    if(centerBoth || a.length > 0) {
+                        var mainImg = centerBoth ? centerBoth : a[0];
+
+                        var transX =((width-img.width)/2 + (img.transCenterPoint.x-mainImg.transCenterPoint.x)),
+                            transY = ((img.regHeight-img.height)/2+ (img.transCenterPoint.y-mainImg.transCenterPoint.y))
+
+                        img.newTrans = "translate("+ transX +"px, "+ transY+ "px) ";
+                        if(img.rotate) {
+                            img.newTrans += ";  transform-origin: "+(transX+img.width/2)+"px "+(transY+img.height/2)+"px"  
+                        }
+                    }
+                    a.push(img);
+                    return a;
+                }, []);
+
+                t=setTemplateVal(t, "IMAGES",
+                                 tool.imgs.reduce(function (iHTML, img) {
+                                    iHTML.push('<img src="imgs/'+img.src+'" style="'+
+                                               "width: "+img.width+"px; height: "+img.height+"px; " +
+                                               "transform: "+(img.rotate?"rotate("+img.rotate+"deg) ":"") +
+                                               img.newTrans+';"/>');
+                                    return iHTML;
+                                 }, []).join("\n")
+                );
+
+                addHTML('toolbox', t);
+                }   
+            });
+
+            types.sort().forEach(function(type, i) {
+                var tr = document.createElement('tr');
+                const angloType = type.replace(/ö/g, 'o');
+                tr.dataset.type=angloType;
+                tr.className='type-'+angloType;
+                tr.innerHTML = '<td>'+type+'</td><td></td>';
+                qs('toolsum table').appendChild(tr);
+            });
+
+document.querySelectorAll('.day, toolbox').forEach(column => {
+    column.addEventListener('dragenter', dragEnter);
+    column.addEventListener('dragleave', dragLeave);
+});
+
+
+
+        </script>
+
+    </body>
+</html>
